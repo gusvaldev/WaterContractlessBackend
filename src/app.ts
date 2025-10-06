@@ -1,12 +1,14 @@
 import express from "express";
 import type { Application, Request, Response } from "express";
 import { connectDB, syncDB } from "./config/database";
+import { router } from "./routes/userRoutes";
 
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(router);
 
 const startServer = async () => {
   try {
