@@ -32,7 +32,7 @@ export const connectDB = async () => {
 
 export const syncDB = async () => {
   try {
-    await sequelize.sync({ force: true });
+    await sequelize.sync({ force: false });
     console.log("Database synchronized");
   } catch (error) {
     console.error("Database sync failed:", error);
