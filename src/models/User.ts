@@ -1,29 +1,17 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import { sequelize } from "../config/database.js";
+import { UserType } from "../interfaces/types.js";
 
-interface UserAttributes {
-  id: number;
-  name: string;
-  lastname: string;
-  username: string;
-  password: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+interface UserCreationAttributes extends Optional<UserType, "id"> {}
 
-interface UserCreationAttributes extends Optional<UserAttributes, "id"> {}
-
-class User
-  extends Model<UserAttributes, UserCreationAttributes>
-  implements UserAttributes
-{
-  public id!: number;
-  public name!: string;
-  public lastname!: string;
-  public username!: string;
-  public password!: string;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+class User extends Model<UserType, UserCreationAttributes> implements UserType {
+  declare id: number;
+  declare name: string;
+  declare lastname: string;
+  declare username: string;
+  declare password: string;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 User.init(
