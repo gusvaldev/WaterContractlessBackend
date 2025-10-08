@@ -1,14 +1,22 @@
 import express from "express";
 import type { Application, Request, Response } from "express";
 import { connectDB, syncDB } from "./config/database";
+import "./models/index.js"; // Importar modelos
 import { router } from "./routes/userRoutes";
+import authRoutes from "./routes/authRoutes.js";
+import cors from "cors";
 
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(cors({ origin: "*", credentials: true }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(router);
+
+// Rutas
+app.use("/api/auth", authRoutes);
+app.use("/api", router);
 
 const startServer = async () => {
   try {
