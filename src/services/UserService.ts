@@ -1,5 +1,5 @@
 import { User } from "../models/User";
-import { UserType } from "../interfaces/types";
+import { UserType, UpdateUser } from "../interfaces/User";
 
 const postUser = async (
   userData: Omit<UserType, "id" | "createdAt" | "updatedAt">
@@ -34,4 +34,23 @@ const getUserById = async (id: UserType["id"]): Promise<UserType | null> => {
   }
 };
 
-export { postUser, getUserById };
+const updateUserInfo = async (
+  userData: UpdateUser
+): Promise<UserType | null> => {
+  try {
+    const userInfo = await User.findOne({ where: { id: userData.id } });
+    if (!userInfo) return null;
+
+    await userInfo.update({
+      name: userData.name,
+      lastname: userData.lastname,
+      username: userData.username,
+    });
+    return userInfo.toJSON() as UserType;
+  } catch (error) {
+    console.error("Failed to update the user", error);
+    throw new Error("Failed to find a user by his id");
+  }
+};
+
+export { postUser, getUserById, updateUserInfo };
