@@ -4,6 +4,7 @@ import { connectDB, syncDB } from "./config/database";
 import "./models/index.js"; // Importar modelos
 import { router } from "./routes/userRoutes";
 import authRoutes from "./routes/authRoutes.js";
+import subdivisionRoutes from "./routes/subdivisionRoutes";
 import cors from "cors";
 
 const app: Application = express();
@@ -17,6 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 // Rutas
 app.use("/api/auth", authRoutes);
 app.use("/api", router);
+app.use("/api", subdivisionRoutes);
 
 const startServer = async () => {
   try {
