@@ -17,9 +17,9 @@ export const authMiddleware = (
     const token = authHeader.substring(7);
     const decoded = verifyToken(token);
 
-    // Ahora TypeScript reconoce userId y userEmail
     req.userId = decoded.userId;
-    req.userEmail = decoded.email;
+    // req.userEmail = decoded.email;
+    req.userRole = decoded.role;
 
     next();
   } catch (error) {
