@@ -2,6 +2,7 @@ import { Router } from "express";
 import type { Router as ExpressRouter } from "express";
 import {
   createASubdivision,
+  deleteSubdivisionById,
   getSubdivisionId,
   getSubdivisions,
   putSubdivisionId,
@@ -10,11 +11,10 @@ import { authMiddleware } from "../middleware/auth";
 
 const router: ExpressRouter = Router();
 
-router.use(authMiddleware);
-
-router.post("/subdivisions", createASubdivision);
-router.get("/subdivisions", getSubdivisions);
-router.get("/subdivision/:id", getSubdivisionId);
-router.patch("/subdivisions/:id", putSubdivisionId);
+router.post("/subdivisions", authMiddleware, createASubdivision);
+router.get("/subdivisions", authMiddleware, getSubdivisions);
+router.get("/subdivision/:id", authMiddleware, getSubdivisionId);
+router.patch("/subdivisions/:id", authMiddleware, putSubdivisionId);
+router.delete("/subdivisions/:id", authMiddleware, deleteSubdivisionById);
 
 export default router;
