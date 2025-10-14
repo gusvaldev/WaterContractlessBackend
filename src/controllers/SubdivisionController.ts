@@ -77,14 +77,14 @@ export const putSubdivisionId = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { subdivision_id } = req.params;
+    const { id } = req.params;
     const { subdivision_name } = req.body;
-    if (!subdivision_id) {
+    if (!id) {
       res.status(400).json({ message: "Subdivision ID required" });
     }
 
     const subdivisionToUpdate = await updateSubdivision(
-      Number(subdivision_id),
+      Number(id),
       subdivision_name
     );
 
@@ -95,5 +95,25 @@ export const putSubdivisionId = async (
   } catch (error) {
     console.error("Error updating the subdivision", error);
     res.status(500).json({ error: "Failed to update the subdivision" });
+  }
+};
+
+export const deleteSubdivisionById = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      res.status(400).json({ message: "Subdivision ID required" });
+    }
+
+    const subdivisionToDelete = await deleteSubdivision(Number(id));
+
+    res.status(200).json({ message: "Subdivision deleted" });
+  } catch (error) {
+    console.error("Error deleting the subdivision", error);
+    res.status(500).json({ error: "Failed to delete the subdivision" });
   }
 };
