@@ -5,6 +5,7 @@ export type UserType = {
   email: string;
   username: string;
   password: string;
+  role: "admin" | "inspector" | "cobrador";
   isVerified?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
