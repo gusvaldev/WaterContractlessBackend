@@ -13,7 +13,7 @@ import { getUserById } from "../services/UserService.js";
  */
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, lastname, email, username, password } = req.body;
+    const { name, lastname, email, username, password, role } = req.body;
 
     // Validación básica
     if (!name || !lastname || !email || !username || !password) {
@@ -47,6 +47,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       email,
       username,
       password,
+      role,
     });
 
     res.status(201).json({
@@ -59,6 +60,71 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     if (
       error.message === "Email already registered" ||
+      error.message === "Username already taken"
+    ) {
+      res.status(409).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Failed to register user" });
+    }
+  }
+};
+
+export const adminRegisterUser = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { name, lastname, email, username, password, role } = req.body;
+
+    if (!name || !lastname || !email || !username || !password || !role) {
+      res.status(400).json({
+        error:
+          "All fields are required: name, lastname, email, username, password, role",
+      });
+      return;
+    }
+
+    if (!["admin", "inspector", "cobrador"].includes(role)) {
+      res.status(400).json({
+        error: "Invalid role. Must be: admin, inspector, or cobrador",
+      });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      res.status(400).json({
+        error: "Invalid email format",
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      res.status(400).json({
+        error: "Password must be at least 6 characters long",
+      });
+      return;
+    }
+
+    const user = await registerUser({
+      name,
+      lastname,
+      email,
+      username,
+      password,
+      role,
+    });
+
+    res.status(201).json({
+      message:
+        "User registered successfully by admin. Verification email sent to user.",
+      user,
+    });
+  } catch (error: any) {
+    console.error("Error in admin register user controller:", error);
+
+    if (
+      error.message === "User already exists" ||
       error.message === "Username already taken"
     ) {
       res.status(409).json({ error: error.message });
@@ -196,7 +262,6 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Excluir la contraseña de la respuesta
     const { password: _, ...userWithoutPassword } = user;
 
     res.json({
