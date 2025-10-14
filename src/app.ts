@@ -1,7 +1,7 @@
 import express from "express";
 import type { Application, Request, Response } from "express";
 import { connectDB, syncDB } from "./config/database";
-import "./models/index.js"; // Importar modelos
+import "./models/index.js";
 import { router } from "./routes/userRoutes";
 import authRoutes from "./routes/authRoutes.js";
 import subdivisionRoutes from "./routes/subdivisionRoutes";
