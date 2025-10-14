@@ -11,6 +11,7 @@ class User extends Model<UserType, UserCreationAttributes> implements UserType {
   declare email: string;
   declare username: string;
   declare password: string;
+  declare role: "admin" | "inspector" | "cobrador";
   declare isVerified: boolean;
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -47,6 +48,11 @@ User.init(
     password: {
       type: DataTypes.STRING(255),
       allowNull: false,
+    },
+    role: {
+      type: DataTypes.ENUM("admin", "inspector", "cobrador"),
+      allowNull: false,
+      defaultValue: "inspector",
     },
     isVerified: {
       type: DataTypes.BOOLEAN,
