@@ -1,12 +1,7 @@
 import { User } from "../models/User.js";
-import { VerificationCode } from "../models/VerificationCode.js";
 import { hashPassword, comparePassword } from "./PasswordService.js";
-import { generateToken } from "./TokenService.js";
-import {
-  generateVerificationCode,
-  sendVerificationEmail,
-} from "./EmailService.js";
-import { Op } from "sequelize";
+import { generateToken, generateVerificationToken } from "./TokenService.js";
+import { sendVerificationEmail } from "./EmailService.js";
 
 interface RegisterData {
   name: string;
@@ -14,6 +9,7 @@ interface RegisterData {
   email: string;
   username: string;
   password: string;
+  role: "admin" | "inspector" | "cobrador";
 }
 
 interface LoginData {
@@ -22,7 +18,7 @@ interface LoginData {
 }
 
 /**
- * Registra un nuevo usuario y envía código de verificación
+ * Registra un nuevo usuario y envía enlace de verificación
  * @param data - Datos del usuario
  * @returns Usuario creado (sin password)
  */
@@ -56,22 +52,17 @@ export const registerUser = async (data: RegisterData) => {
       email: data.email,
       username: data.username,
       password: hashedPassword,
+      role: data.role,
       isVerified: false,
     });
 
-    // Generar código de verificación
-    const code = generateVerificationCode();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
+    // Generar token de verificación (JWT válido por 24 horas)
+    const verificationToken = generateVerificationToken(newUser.id, data.email);
 
-    // Guardar código en la base de datos
-    await VerificationCode.create({
-      userId: newUser.id,
-      code,
-      expiresAt,
-    });
-
-    // Enviar email con código
-    await sendVerificationEmail(data.email, code);
+    // Enviar email con enlace de verificación (async, no bloqueante)
+    sendVerificationEmail(data.email, verificationToken, data.name)
+      .then(() => console.log(`Verification email sent to ${data.email}`))
+      .catch((error) => console.error("Error sending email", error));
 
     // Retornar usuario sin contraseña
     const { password: _, ...userWithoutPassword } = newUser.toJSON();
@@ -83,18 +74,20 @@ export const registerUser = async (data: RegisterData) => {
 };
 
 /**
- * Verifica el código de verificación del usuario
- * @param email - Email del usuario
- * @param code - Código de verificación
- * @returns true si el código es válido
+ * Verifica el email del usuario mediante token JWT
+ * @param token - Token de verificación
+ * @returns Usuario verificado (sin password)
  */
-export const verifyUserCode = async (
-  email: string,
-  code: string
-): Promise<boolean> => {
+export const verifyEmailWithToken = async (token: string) => {
   try {
+    // Importar la función de verificación aquí para evitar dependencias circulares
+    const { verifyVerificationToken } = await import("./TokenService.js");
+
+    // Verificar y decodificar el token
+    const decoded = verifyVerificationToken(token);
+
     // Buscar usuario
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ where: { id: decoded.userId } });
 
     if (!user) {
       throw new Error("User not found");
@@ -104,30 +97,19 @@ export const verifyUserCode = async (
       throw new Error("User already verified");
     }
 
-    // Buscar código válido
-    const verificationCode = await VerificationCode.findOne({
-      where: {
-        userId: user.id,
-        code,
-        expiresAt: {
-          [Op.gt]: new Date(), // Código no expirado
-        },
-      },
-    });
-
-    if (!verificationCode) {
-      throw new Error("Invalid or expired verification code");
+    // Verificar que el email coincida
+    if (user.email !== decoded.email) {
+      throw new Error("Invalid verification token");
     }
 
     // Marcar usuario como verificado
     await user.update({ isVerified: true });
 
-    // Eliminar código usado
-    await verificationCode.destroy();
-
-    return true;
+    // Retornar usuario sin contraseña
+    const { password: _, ...userWithoutPassword } = user.toJSON();
+    return userWithoutPassword;
   } catch (error) {
-    console.error("Error verifying code:", error);
+    console.error("Error verifying email:", error);
     throw error;
   }
 };
@@ -159,7 +141,7 @@ export const loginUser = async (data: LoginData) => {
     }
 
     // Generar token
-    const token = generateToken(user.id, user.email);
+    const token = generateToken(user.id, user.role);
 
     // Retornar token y usuario sin contraseña
     const { password: _, ...userWithoutPassword } = user.toJSON();
@@ -175,10 +157,10 @@ export const loginUser = async (data: LoginData) => {
 };
 
 /**
- * Reenvía el código de verificación
+ * Reenvía el enlace de verificación
  * @param email - Email del usuario
  */
-export const resendVerificationCode = async (email: string): Promise<void> => {
+export const resendVerificationLink = async (email: string): Promise<void> => {
   try {
     const user = await User.findOne({ where: { email } });
 
@@ -190,25 +172,13 @@ export const resendVerificationCode = async (email: string): Promise<void> => {
       throw new Error("User already verified");
     }
 
-    // Eliminar códigos anteriores
-    await VerificationCode.destroy({
-      where: { userId: user.id },
-    });
+    // Generar nuevo token de verificación
+    const verificationToken = generateVerificationToken(user.id, user.email);
 
-    // Generar nuevo código
-    const code = generateVerificationCode();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-
-    await VerificationCode.create({
-      userId: user.id,
-      code,
-      expiresAt,
-    });
-
-    // Enviar email
-    await sendVerificationEmail(email, code);
+    // Enviar email con enlace
+    await sendVerificationEmail(email, verificationToken, user.name);
   } catch (error) {
-    console.error("Error resending verification code:", error);
+    console.error("Error resending verification link:", error);
     throw error;
   }
 };
