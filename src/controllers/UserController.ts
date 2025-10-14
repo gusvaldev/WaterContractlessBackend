@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 
 const createUser = async (req: Request, res: Response) => {
   try {
-    const { name, lastname, username, password } = req.body;
+    const { name, lastname, email, username, password } = req.body;
     if (!name || !lastname || !username || !password) {
       return res.status(400).json({
         error: "All fields are required (name, lastname, username, password)",
@@ -13,6 +13,7 @@ const createUser = async (req: Request, res: Response) => {
     const newUser = await postUser({
       name,
       lastname,
+      email,
       username,
       password,
     });
