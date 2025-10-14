@@ -1,9 +1,9 @@
 import type { Request, Response } from "express";
 import {
   registerUser,
-  verifyUserCode,
+  verifyEmailWithToken,
   loginUser,
-  resendVerificationCode,
+  resendVerificationLink,
 } from "../services/AuthService.js";
 import { getUserById } from "../services/UserService.js";
 
@@ -52,7 +52,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     res.status(201).json({
       message:
-        "User registered successfully. Please check your email for verification code.",
+        "User registered successfully. Please check your email and click the verification link.",
       user,
     });
   } catch (error: any) {
@@ -135,37 +135,48 @@ export const adminRegisterUser = async (
 };
 
 /**
- * POST /api/auth/verify
- * Verifica el código de verificación del usuario
+ * GET /api/auth/verify-email?token=xxx
+ * Verifica el email del usuario mediante enlace con token JWT
  */
-export const verify = async (req: Request, res: Response): Promise<void> => {
+export const verifyEmail = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const { email, code } = req.body;
+    const { token } = req.query;
 
-    if (!email || !code) {
+    if (!token || typeof token !== "string") {
       res.status(400).json({
-        error: "Email and code are required",
+        error: "Verification token is required",
       });
       return;
     }
 
-    await verifyUserCode(email, code);
+    const user = await verifyEmailWithToken(token);
 
+    // Redirigir a una página de éxito o devolver JSON
     res.json({
-      message: "Email verified successfully. You can now log in.",
+      message: "Email verified successfully! You can now log in.",
+      user,
     });
+
+    // Alternativa: redirigir a tu frontend
+    // res.redirect(`${process.env.FRONTEND_URL}/verification-success`);
   } catch (error: any) {
-    console.error("Error in verify controller:", error);
+    console.error("Error in verify email controller:", error);
 
     if (
       error.message === "User not found" ||
-      error.message === "Invalid or expired verification code"
+      error.message === "Invalid verification token" ||
+      error.message === "Invalid or expired verification token"
     ) {
       res.status(400).json({ error: error.message });
     } else if (error.message === "User already verified") {
-      res.status(409).json({ error: error.message });
+      res.status(409).json({
+        error: "This email has already been verified. You can log in now.",
+      });
     } else {
-      res.status(500).json({ error: "Failed to verify code" });
+      res.status(500).json({ error: "Failed to verify email" });
     }
   }
 };
@@ -207,10 +218,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 };
 
 /**
- * POST /api/auth/resend-code
- * Reenvía el código de verificación
+ * POST /api/auth/resend-verification
+ * Reenvía el enlace de verificación
  */
-export const resendCode = async (
+export const resendVerification = async (
   req: Request,
   res: Response
 ): Promise<void> => {
@@ -224,13 +235,13 @@ export const resendCode = async (
       return;
     }
 
-    await resendVerificationCode(email);
+    await resendVerificationLink(email);
 
     res.json({
-      message: "Verification code sent successfully",
+      message: "Verification link sent successfully. Please check your email.",
     });
   } catch (error: any) {
-    console.error("Error in resend code controller:", error);
+    console.error("Error in resend verification controller:", error);
 
     if (
       error.message === "User not found" ||
@@ -238,7 +249,7 @@ export const resendCode = async (
     ) {
       res.status(400).json({ error: error.message });
     } else {
-      res.status(500).json({ error: "Failed to resend verification code" });
+      res.status(500).json({ error: "Failed to resend verification link" });
     }
   }
 };
