@@ -8,6 +8,7 @@ const postUser = async (
     const newUser = await User.create({
       name: userData.name,
       lastname: userData.lastname,
+      email: userData.email,
       username: userData.username,
       password: userData.password,
     });
