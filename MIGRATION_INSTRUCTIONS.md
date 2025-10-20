@@ -1,8 +1,8 @@
-# Instrucciones de Migración: Sistema de Verificación por Enlace
+# Sistema de Autenticación Simplificado
 
-## ✅ Cambios Implementados
+## ✅ Sistema Actual
 
-Hemos migrado del sistema de **códigos de verificación de 6 dígitos** al sistema de **verificación por enlace (JWT)**.
+**Sistema simplificado sin verificación de email** - Los usuarios registrados por el admin quedan automáticamente activos.
 
 ### Ventajas del nuevo sistema:
 
