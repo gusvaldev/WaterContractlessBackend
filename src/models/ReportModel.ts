@@ -1,22 +1,13 @@
 import { DataTypes, Optional, Model } from "sequelize";
 import { sequelize } from "../config/database.js";
 import { House } from "./HouseModel.js";
+import { Reports } from "../interfaces/Reports.js";
 
-interface ReportAttributes {
-  report_id: number;
-  report_date: Date;
-  comments: string | null;
-  house_id: number;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-interface ReportCreationAttributes
-  extends Optional<ReportAttributes, "report_id"> {}
+interface ReportCreationAttributes extends Optional<Reports, "report_id"> {}
 
 class Report
-  extends Model<ReportAttributes, ReportCreationAttributes>
-  implements ReportAttributes
+  extends Model<Reports, ReportCreationAttributes>
+  implements Reports
 {
   declare report_id: number;
   declare report_date: Date;
