@@ -6,6 +6,8 @@ import { router } from "./routes/userRoutes";
 import authRoutes from "./routes/authRoutes.js";
 import subdivisionRoutes from "./routes/subdivisionRoutes";
 import streetRoutes from "./routes/streetRoutes";
+import houseRoutes from "./routes/houseRoutes";
+import reportRoutes from "./routes/reportRoutes";
 import cors from "cors";
 
 const app: Application = express();
@@ -21,6 +23,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api", router);
 app.use("/api", subdivisionRoutes);
 app.use("/api", streetRoutes);
+app.use("/api/houses", houseRoutes);
+app.use("/api/reports", reportRoutes);
 
 const startServer = async () => {
   try {
