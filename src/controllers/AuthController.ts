@@ -1,10 +1,5 @@
 import type { Request, Response } from "express";
-import {
-  registerUser,
-  verifyEmailWithToken,
-  loginUser,
-  resendVerificationLink,
-} from "../services/AuthService.js";
+import { registerUser, loginUser } from "../services/AuthService.js";
 import { getUserById } from "../services/UserService.js";
 
 /**
@@ -117,7 +112,7 @@ export const adminRegisterUser = async (
 
     res.status(201).json({
       message:
-        "User registered successfully by admin. Verification email sent to user.",
+        "User registered successfully. The user can now log in with their credentials.",
       user,
     });
   } catch (error: any) {
@@ -130,53 +125,6 @@ export const adminRegisterUser = async (
       res.status(409).json({ error: error.message });
     } else {
       res.status(500).json({ error: "Failed to register user" });
-    }
-  }
-};
-
-/**
- * GET /api/auth/verify-email?token=xxx
- * Verifica el email del usuario mediante enlace con token JWT
- */
-export const verifyEmail = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const { token } = req.query;
-
-    if (!token || typeof token !== "string") {
-      res.status(400).json({
-        error: "Verification token is required",
-      });
-      return;
-    }
-
-    const user = await verifyEmailWithToken(token);
-
-    // Redirigir a una página de éxito o devolver JSON
-    res.json({
-      message: "Email verified successfully! You can now log in.",
-      user,
-    });
-
-    // Alternativa: redirigir a tu frontend
-    // res.redirect(`${process.env.FRONTEND_URL}/verification-success`);
-  } catch (error: any) {
-    console.error("Error in verify email controller:", error);
-
-    if (
-      error.message === "User not found" ||
-      error.message === "Invalid verification token" ||
-      error.message === "Invalid or expired verification token"
-    ) {
-      res.status(400).json({ error: error.message });
-    } else if (error.message === "User already verified") {
-      res.status(409).json({
-        error: "This email has already been verified. You can log in now.",
-      });
-    } else {
-      res.status(500).json({ error: "Failed to verify email" });
     }
   }
 };
@@ -206,50 +154,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   } catch (error: any) {
     console.error("Error in login controller:", error);
 
-    if (
-      error.message === "Invalid email or password" ||
-      error.message === "Please verify your email before logging in"
-    ) {
+    if (error.message === "Invalid email or password") {
       res.status(401).json({ error: error.message });
     } else {
       res.status(500).json({ error: "Failed to log in" });
-    }
-  }
-};
-
-/**
- * POST /api/auth/resend-verification
- * Reenvía el enlace de verificación
- */
-export const resendVerification = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const { email } = req.body;
-
-    if (!email) {
-      res.status(400).json({
-        error: "Email is required",
-      });
-      return;
-    }
-
-    await resendVerificationLink(email);
-
-    res.json({
-      message: "Verification link sent successfully. Please check your email.",
-    });
-  } catch (error: any) {
-    console.error("Error in resend verification controller:", error);
-
-    if (
-      error.message === "User not found" ||
-      error.message === "User already verified"
-    ) {
-      res.status(400).json({ error: error.message });
-    } else {
-      res.status(500).json({ error: "Failed to resend verification link" });
     }
   }
 };

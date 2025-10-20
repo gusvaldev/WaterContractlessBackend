@@ -40,8 +40,13 @@ export const getSubdivisions = async (
 ): Promise<void> => {
   try {
     const subdivisions = await getAllSubdivisions();
-    if (!subdivisions) {
-      res.status(204).json({ message: "No subdivisions yet" });
+
+    if (!subdivisions || subdivisions.length === 0) {
+      res.status(200).json({
+        message: "No subdivisions found",
+        subdivisions: [],
+      });
+      return;
     }
 
     res.status(200).json({ message: "Subdivisions list", subdivisions });
@@ -56,14 +61,23 @@ export const getSubdivisionId = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { subdivision_id } = req.params;
+    const { id } = req.params;
 
-    if (!subdivision_id) {
-      res.status(400).json({ message: "Subdivision id is required" });
+    // Validar que el id sea un número válido
+    const subdivisionId = Number(id);
+    if (isNaN(subdivisionId)) {
+      res.status(400).json({ error: "Invalid subdivision ID" });
+      return;
     }
-    const subdivision = await getSubdivisionById(Number(subdivision_id));
 
-    res.status(200).json({ message: "Subdivision information:", subdivision });
+    const subdivision = await getSubdivisionById(subdivisionId);
+
+    if (!subdivision) {
+      res.status(404).json({ error: "Subdivision not found" });
+      return;
+    }
+
+    res.status(200).json({ message: "Subdivision information", subdivision });
   } catch (error) {
     console.error("Error getting subdivision information", error);
     res.status(500).json({ error: "Failed to fetch subdivision by ID" });
@@ -79,21 +93,37 @@ export const putSubdivisionId = async (
   try {
     const { id } = req.params;
     const { subdivision_name } = req.body;
-    if (!id) {
-      res.status(400).json({ message: "Subdivision ID required" });
+
+    // Validar que el id sea un número válido
+    const subdivisionId = Number(id);
+    if (isNaN(subdivisionId)) {
+      res.status(400).json({ error: "Invalid subdivision ID" });
+      return;
+    }
+
+    // Validar que se envíe el nombre
+    if (!subdivision_name) {
+      res.status(400).json({ error: "Subdivision name is required" });
+      return;
     }
 
     const subdivisionToUpdate = await updateSubdivision(
-      Number(id),
+      subdivisionId,
       subdivision_name
     );
 
     res.status(200).json({
       message: "Subdivision updated successfully",
-      subdivisionToUpdate,
+      subdivision: subdivisionToUpdate,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error updating the subdivision", error);
+
+    if (error.message === "Subdivision not found") {
+      res.status(404).json({ error: error.message });
+      return;
+    }
+
     res.status(500).json({ error: "Failed to update the subdivision" });
   }
 };
@@ -105,15 +135,24 @@ export const deleteSubdivisionById = async (
   try {
     const { id } = req.params;
 
-    if (!id) {
-      res.status(400).json({ message: "Subdivision ID required" });
+    // Validar que el id sea un número válido
+    const subdivisionId = Number(id);
+    if (isNaN(subdivisionId)) {
+      res.status(400).json({ error: "Invalid subdivision ID" });
+      return;
     }
 
-    const subdivisionToDelete = await deleteSubdivision(Number(id));
+    await deleteSubdivision(subdivisionId);
 
-    res.status(200).json({ message: "Subdivision deleted" });
-  } catch (error) {
+    res.status(200).json({ message: "Subdivision deleted successfully" });
+  } catch (error: any) {
     console.error("Error deleting the subdivision", error);
+
+    if (error.message === "Subdivision not found") {
+      res.status(404).json({ error: error.message });
+      return;
+    }
+
     res.status(500).json({ error: "Failed to delete the subdivision" });
   }
 };
