@@ -6,6 +6,8 @@ import {
   getSubdivisionId,
   getSubdivisions,
   putSubdivisionId,
+  generateSubdivisionPDF,
+  generateAllSubdivisionsPDF,
 } from "../controllers/SubdivisionController";
 import { getHousesBySubdivision } from "../controllers/HouseController";
 import { authMiddleware } from "../middleware/auth";
@@ -18,11 +20,14 @@ router.get("/subdivisions/:id", authMiddleware, getSubdivisionId);
 router.patch("/subdivisions/:id", authMiddleware, putSubdivisionId);
 router.delete("/subdivisions/:id", authMiddleware, deleteSubdivisionById);
 
-// Obtener todas las casas de un fraccionamiento
 router.get(
   "/subdivisions/:subdivisionId/houses",
   authMiddleware,
   getHousesBySubdivision
 );
+
+router.get("/subdivisions/:id/pdf", authMiddleware, generateSubdivisionPDF);
+
+router.get("/subdivisions-all/pdf", authMiddleware, generateAllSubdivisionsPDF);
 
 export default router;

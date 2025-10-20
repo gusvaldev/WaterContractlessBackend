@@ -6,6 +6,7 @@ import {
   updateSubdivision,
   deleteSubdivision,
 } from "../services/SubdivisionService";
+import * as PDFService from "../services/PDFService";
 
 export const createASubdivision = async (
   req: Request,
@@ -154,5 +155,83 @@ export const deleteSubdivisionById = async (
     }
 
     res.status(500).json({ error: "Failed to delete the subdivision" });
+  }
+};
+
+export const generateSubdivisionPDF = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    if (isNaN(Number(id))) {
+      res.status(400).json({
+        ok: false,
+        message: "Invalid subdivision ID",
+      });
+      return;
+    }
+
+    const pdfDoc = await PDFService.generateSubdivisionPDF(Number(id));
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=reporte-fraccionamiento-${id}-${Date.now()}.pdf`
+    );
+
+    pdfDoc.pipe(res);
+    pdfDoc.end();
+  } catch (error: any) {
+    console.error("Error generating PDF:", error);
+
+    if (error.message === "Subdivision not found") {
+      res.status(404).json({
+        ok: false,
+        message: "Subdivision not found",
+      });
+      return;
+    }
+
+    res.status(500).json({
+      ok: false,
+      message: "Error generating PDF",
+      error: error.message,
+    });
+  }
+};
+
+export const generateAllSubdivisionsPDF = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const pdfDoc = await PDFService.generateAllSubdivisionsPDF();
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=reporte-todos-fraccionamientos-${Date.now()}.pdf`
+    );
+
+    pdfDoc.pipe(res);
+    pdfDoc.end();
+  } catch (error: any) {
+    console.error("Error generating PDF:", error);
+
+    if (error.message === "No subdivisions found") {
+      res.status(404).json({
+        ok: false,
+        message: "No subdivisions found",
+      });
+      return;
+    }
+
+    res.status(500).json({
+      ok: false,
+      message: "Error generating PDF",
+      error: error.message,
+    });
   }
 };
