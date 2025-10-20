@@ -1,69 +1,165 @@
-import { Street } from "../models";
-import type { StreetType } from "../interfaces/Street";
+import { Street, Subdivision } from "../models";
 
-export const addStreet = async (
-  street_name: StreetType["street_name"],
-  subdivision_id: StreetType["subdivision_id"]
-) => {
+interface CreateStreetData {
+  street_name: string;
+  subdivision_id: number;
+}
+
+/**
+ * Crea una nueva calle en un fraccionamiento
+ */
+export const createStreet = async (data: CreateStreetData) => {
   try {
+    // Verificar que el fraccionamiento existe
+    const subdivision = await Subdivision.findByPk(data.subdivision_id);
+
+    if (!subdivision) {
+      throw new Error("Subdivision not found");
+    }
+
     const newStreet = await Street.create({
-      street_name,
-      subdivision_id,
+      street_name: data.street_name,
+      subdivision_id: data.subdivision_id,
     });
 
     return newStreet.toJSON();
   } catch (error) {
-    console.error("Error creating the new street", error);
-    throw new Error("Failed to create a new street");
+    console.error("Error creating street:", error);
+    throw error;
   }
 };
 
-export const getStreet = async (id: StreetType["street_id"]) => {
+/**
+ * Obtiene todas las calles (con información del fraccionamiento)
+ */
+export const getAllStreets = async () => {
   try {
-    const foundStreet = await Street.findByPk(Number(id));
+    const streets = await Street.findAll({
+      include: [
+        {
+          model: Subdivision,
+          as: "subdivision",
+          attributes: ["subdivision_id", "subdivision_name"],
+        },
+      ],
+      order: [["created_at", "DESC"]],
+    });
 
-    return foundStreet?.toJSON();
+    return streets.map((street) => street.toJSON());
   } catch (error) {
-    console.error("Error finding the new street", error);
-    throw new Error("Failed to find the street");
+    console.error("Error fetching streets:", error);
+    throw new Error("Failed to fetch streets");
   }
 };
 
-export const getStreets = async () => {
+/**
+ * Obtiene todas las calles de un fraccionamiento específico
+ */
+export const getStreetsBySubdivision = async (subdivisionId: number) => {
   try {
-    const allStreets = await Street.findAll();
+    const streets = await Street.findAll({
+      where: { subdivision_id: subdivisionId },
+      include: [
+        {
+          model: Subdivision,
+          as: "subdivision",
+          attributes: ["subdivision_id", "subdivision_name"],
+        },
+      ],
+      order: [["street_name", "ASC"]],
+    });
 
-    if (allStreets.length == 0) {
-      return { message: "No streets found" };
+    return streets.map((street) => street.toJSON());
+  } catch (error) {
+    console.error("Error fetching streets by subdivision:", error);
+    throw new Error("Failed to fetch streets by subdivision");
+  }
+};
+
+/**
+ * Obtiene una calle por su ID
+ */
+export const getStreetById = async (id: number) => {
+  try {
+    const street = await Street.findByPk(id, {
+      include: [
+        {
+          model: Subdivision,
+          as: "subdivision",
+          attributes: ["subdivision_id", "subdivision_name"],
+        },
+      ],
+    });
+
+    if (!street) {
+      return null;
     }
 
-    return allStreets;
+    return street.toJSON();
   } catch (error) {
-    console.error("Error finding all the streets", error);
-    throw new Error("Failed to find all the streets");
+    console.error("Error fetching street:", error);
+    throw new Error("Failed to fetch street");
   }
 };
 
-export const updateStreetInfo = async (
-  street_id: StreetType["street_id"],
-  street_name: StreetType["street_name"],
-  subdivision_id: StreetType["subdivision_id"]
+/**
+ * Actualiza una calle
+ */
+export const updateStreet = async (
+  id: number,
+  data: Partial<CreateStreetData>
 ) => {
   try {
-    const street = await Street.findByPk(Number(street_id));
+    const street = await Street.findByPk(id);
 
     if (!street) {
       throw new Error("Street not found");
     }
 
-    const updateStreet = await street.update({
-      street_name: street_name,
-      subdivision_id: subdivision_id,
+    // Si se va a cambiar el subdivision_id, verificar que existe
+    if (data.subdivision_id && data.subdivision_id !== street.subdivision_id) {
+      const subdivision = await Subdivision.findByPk(data.subdivision_id);
+      if (!subdivision) {
+        throw new Error("Subdivision not found");
+      }
+    }
+
+    await street.update(data);
+
+    // Recargar con la relación
+    await street.reload({
+      include: [
+        {
+          model: Subdivision,
+          as: "subdivision",
+          attributes: ["subdivision_id", "subdivision_name"],
+        },
+      ],
     });
 
-    return updateStreet.toJSON();
+    return street.toJSON();
   } catch (error) {
-    console.error("Error to update the street", error);
-    throw new Error("Failed to update the street");
+    console.error("Error updating street:", error);
+    throw error;
+  }
+};
+
+/**
+ * Elimina una calle
+ */
+export const deleteStreet = async (id: number) => {
+  try {
+    const street = await Street.findByPk(id);
+
+    if (!street) {
+      throw new Error("Street not found");
+    }
+
+    await street.destroy();
+
+    return true;
+  } catch (error) {
+    console.error("Error deleting street:", error);
+    throw error;
   }
 };
