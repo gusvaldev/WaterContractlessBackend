@@ -14,21 +14,28 @@ import { authorizedRoles } from "../middleware/roleAuth";
 
 const router: ExpressRouter = Router();
 
-// CRUD de calles
-router.post("/streets", authMiddleware, createStreet);
+router.post(
+  "/streets",
+  authMiddleware,
+  authorizedRoles("admin", "inspector", "cobrador"),
+  createStreet
+);
 router.get("/streets", authMiddleware, getAllStreets);
 router.get("/streets/:id", authMiddleware, getStreet);
 router.patch("/streets/:id", authMiddleware, updateStreet);
-router.delete("/streets/:id", authMiddleware, deleteStreet);
+router.delete(
+  "/streets/:id",
+  authMiddleware,
+  authorizedRoles("admin", "cobrador"),
+  deleteStreet
+);
 
-// Obtener calles por fraccionamiento
 router.get(
   "/subdivisions/:subdivisionId/streets",
   authMiddleware,
   getStreetsBySubdivision
 );
 
-// Obtener casas de una calle
 router.get("/streets/:streetId/houses", authMiddleware, getHousesByStreet);
 
 export default router;
