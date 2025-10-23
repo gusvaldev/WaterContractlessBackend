@@ -8,6 +8,7 @@ import subdivisionRoutes from "./routes/subdivisionRoutes";
 import streetRoutes from "./routes/streetRoutes";
 import houseRoutes from "./routes/houseRoutes";
 import reportRoutes from "./routes/reportRoutes";
+import paymentRoutes from "./routes/paymentRoutes";
 import cors from "cors";
 
 const app: Application = express();
@@ -25,6 +26,7 @@ app.use("/api", subdivisionRoutes);
 app.use("/api", streetRoutes);
 app.use("/api/houses", houseRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api", paymentRoutes);
 
 const startServer = async () => {
   try {
