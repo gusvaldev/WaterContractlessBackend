@@ -14,6 +14,7 @@ class House
   declare inhabited: "0" | "1";
   declare water: "0" | "1";
   declare street_id: number;
+  declare importe?: number;
   declare createdAt?: Date;
   declare updatedAt?: Date;
 }
@@ -41,6 +42,11 @@ House.init(
         model: "street",
         key: "street_id",
       },
+    },
+    importe: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      defaultValue: null,
     },
   },
   {

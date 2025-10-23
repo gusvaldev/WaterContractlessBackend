@@ -5,6 +5,7 @@ interface CreateHouseData {
   inhabited: "0" | "1";
   water: "0" | "1";
   street_id: number;
+  importe?: number;
 }
 
 /**
@@ -24,6 +25,7 @@ export const createHouse = async (data: CreateHouseData) => {
       inhabited: data.inhabited,
       water: data.water,
       street_id: data.street_id,
+      ...(data.importe !== undefined && { importe: data.importe }),
     });
 
     return newHouse.toJSON();
@@ -183,7 +185,15 @@ export const updateHouse = async (
       }
     }
 
-    await house.update(data);
+    await house.update({
+      ...(data.house_number !== undefined && {
+        house_number: data.house_number,
+      }),
+      ...(data.inhabited !== undefined && { inhabited: data.inhabited }),
+      ...(data.water !== undefined && { water: data.water }),
+      ...(data.street_id !== undefined && { street_id: data.street_id }),
+      ...(data.importe !== undefined && { importe: data.importe }),
+    });
 
     // Recargar con las relaciones
     await house.reload({
