@@ -7,6 +7,7 @@ import {
   deleteSubdivision,
 } from "../services/SubdivisionService";
 import * as PDFService from "../services/PDFService";
+import * as ExcelService from "../services/ExcelService";
 
 export const createASubdivision = async (
   req: Request,
@@ -231,6 +232,90 @@ export const generateAllSubdivisionsPDF = async (
     res.status(500).json({
       ok: false,
       message: "Error generating PDF",
+      error: error.message,
+    });
+  }
+};
+
+export const generateSubdivisionExcel = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    if (isNaN(Number(id))) {
+      res.status(400).json({
+        ok: false,
+        message: "Invalid subdivision ID",
+      });
+      return;
+    }
+
+    const workbook = await ExcelService.generateSubdivisionExcel(Number(id));
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=reporte-fraccionamiento-${id}-${Date.now()}.xlsx`
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error: any) {
+    console.error("Error generating Excel:", error);
+
+    if (error.message === "Subdivision not found") {
+      res.status(404).json({
+        ok: false,
+        message: "Subdivision not found",
+      });
+      return;
+    }
+
+    res.status(500).json({
+      ok: false,
+      message: "Error generating Excel file",
+      error: error.message,
+    });
+  }
+};
+
+export const generateAllSubdivisionsExcel = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const workbook = await ExcelService.generateAllSubdivisionsExcel();
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=reporte-todos-fraccionamientos-${Date.now()}.xlsx`
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error: any) {
+    console.error("Error generating Excel:", error);
+
+    if (error.message === "No subdivisions found") {
+      res.status(404).json({
+        ok: false,
+        message: "No subdivisions found",
+      });
+      return;
+    }
+
+    res.status(500).json({
+      ok: false,
+      message: "Error generating Excel file",
       error: error.message,
     });
   }
