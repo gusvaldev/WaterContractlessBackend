@@ -15,7 +15,7 @@ const router: ExpressRouter = Router();
 router.post(
   "/",
   authMiddleware,
-  authorizedRoles("admin", "inspector", "cobrador"),
+  authorizedRoles("admin", "cobrador"),
   createAReport
 );
 
@@ -23,7 +23,7 @@ router.post(
 router.get(
   "/",
   authMiddleware,
-  authorizedRoles("admin", "inspector", "cobrador"),
+  authorizedRoles("admin", "cobrador"),
   getReports
 );
 
@@ -31,15 +31,15 @@ router.get(
 router.get(
   "/:id",
   authMiddleware,
-  authorizedRoles("admin", "inspector", "cobrador"),
+  authorizedRoles("admin", "cobrador"),
   getReportId
 );
 
 // PATCH /api/reports/:id - Actualizar un reporte
 router.patch(
   "/:id",
-  authorizedRoles("admin", "inspector", "cobrador"),
   authMiddleware,
+  authorizedRoles("admin", "cobrador"),
   putReportId
 );
 
