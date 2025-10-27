@@ -1,4 +1,5 @@
 import PDFDocument from "pdfkit";
+import path from "path";
 import { Subdivision, Street, House, Report } from "../models";
 
 const COLORS = {
@@ -11,24 +12,55 @@ const COLORS = {
   textLight: "#64748b",
 };
 
-const drawHeader = (doc: PDFKit.PDFDocument, subdivisionName?: string) => {
-  doc.fillColor("#ffffff").rect(0, 0, doc.page.width, 120).fill(COLORS.primary);
+const drawHeader = (
+  doc: PDFKit.PDFDocument,
+  subdivisionName?: string,
+  showLogo: boolean = false
+) => {
+  // Solo mostrar títulos principales en la primera página (cuando showLogo = true)
+  if (showLogo) {
+    doc
+      .fillColor(COLORS.primary)
+      .fontSize(18)
+      .font("Helvetica-Bold")
+      .text(
+        "Junta de Agua Potable y Alcantarillado del Municipio de Ahome",
+        0,
+        20,
+        { align: "center", width: doc.page.width }
+      );
 
-  doc
-    .fillColor("#ffffff")
-    .fontSize(22)
-    .font("Helvetica-Bold")
-    .text("JAPAMA - Sistema de Gestión de Agua", 50, 30, { align: "center" });
+    doc
+      .fontSize(14)
+      .font("Helvetica-Bold")
+      .fillColor(COLORS.text)
+      .text("Reporte de Tomas Directas", 0, 50, {
+        align: "center",
+        width: doc.page.width,
+      });
 
-  doc
-    .fontSize(16)
-    .font("Helvetica")
-    .text("Reporte de Tomas Directas", 50, 60, { align: "center" });
+    if (subdivisionName) {
+      doc
+        .fontSize(14)
+        .fillColor(COLORS.text)
+        .font("Helvetica")
+        .text(`Fraccionamiento: ${subdivisionName}`, 0, 75, {
+          align: "center",
+          width: doc.page.width,
+        });
+    }
 
-  if (subdivisionName) {
-    doc.fontSize(12).text(`Fraccionamiento: ${subdivisionName}`, 50, 85, {
-      align: "center",
-    });
+    doc.moveDown(subdivisionName ? 1 : 0.5);
+    const logoPath = path.join(process.cwd(), "assets", "logoJapama.png");
+    try {
+      doc.image(logoPath, 50, doc.y, { width: 200 });
+    } catch (error) {
+      console.log("Logo no encontrado, continuando sin logo");
+    }
+    doc.moveDown(5); // Reducido de 8 a 2 para menos espacio después del logo
+  } else {
+    // En páginas siguientes, solo agregar un pequeño espacio superior
+    doc.y = 50; // Margen superior simple
   }
 
   doc.fillColor(COLORS.text);
@@ -40,19 +72,32 @@ const drawInfoBox = (
   label: string,
   value: string
 ) => {
-  doc.fontSize(9).fillColor(COLORS.textLight).text(label, 50, y);
-  doc.fontSize(10).fillColor(COLORS.text).text(value, 150, y);
+  doc
+    .fontSize(10)
+    .fillColor(COLORS.textLight)
+    .font("Helvetica")
+    .text(label, 50, y);
+  doc
+    .fontSize(11)
+    .fillColor(COLORS.text)
+    .font("Helvetica-Bold")
+    .text(value, 200, y);
 };
 
 const drawSectionHeader = (doc: PDFKit.PDFDocument, title: string) => {
+  if (doc.y > doc.page.height - 130) {
+    doc.addPage();
+    drawHeader(doc, undefined, false);
+  }
+
   const y = doc.y;
   doc
-    .fillColor(COLORS.light)
-    .rect(40, y - 5, doc.page.width - 80, 25)
+    .fillColor(COLORS.primary)
+    .rect(40, y - 5, doc.page.width - 80, 28)
     .fill();
 
   doc
-    .fillColor(COLORS.primary)
+    .fillColor("#ffffff")
     .fontSize(13)
     .font("Helvetica-Bold")
     .text(title, 50, y, { width: doc.page.width - 100 });
@@ -67,8 +112,7 @@ const drawHouseCard = (doc: PDFKit.PDFDocument, house: any) => {
 
   if (doc.y + cardHeight > doc.page.height - 70) {
     doc.addPage();
-    drawHeader(doc);
-    doc.moveDown(8);
+    drawHeader(doc, undefined, false); // Sin logo en páginas siguientes
   }
 
   const y = doc.y;
@@ -183,8 +227,7 @@ export const generateSubdivisionPDF = async (subdivisionId: number) => {
   const subdivisionData = subdivision.toJSON() as any;
   const doc = new PDFDocument({ margin: 50, size: "LETTER" });
 
-  drawHeader(doc, subdivisionData.subdivision_name);
-  doc.moveDown(7);
+  drawHeader(doc, subdivisionData.subdivision_name, true); // Logo solo primera página
 
   drawInfoBox(
     doc,
@@ -202,32 +245,8 @@ export const generateSubdivisionPDF = async (subdivisionId: number) => {
     (sum: number, s: any) => sum + s.houses.length,
     0
   );
-  const casasHabitadas = subdivisionData.streets.reduce(
-    (sum: number, s: any) =>
-      sum + s.houses.filter((h: any) => h.inhabited === "1").length,
-    0
-  );
-  const casasConAgua = subdivisionData.streets.reduce(
-    (sum: number, s: any) =>
-      sum + s.houses.filter((h: any) => h.water === "1").length,
-    0
-  );
 
   drawInfoBox(doc, doc.y, "Total de casas:", totalCasas.toString());
-  doc.moveDown(0.5);
-  drawInfoBox(
-    doc,
-    doc.y,
-    "Casas habitadas:",
-    `${casasHabitadas} (${Math.round((casasHabitadas / totalCasas) * 100)}%)`
-  );
-  doc.moveDown(0.5);
-  drawInfoBox(
-    doc,
-    doc.y,
-    "Casas con agua:",
-    `${casasConAgua} (${Math.round((casasConAgua / totalCasas) * 100)}%)`
-  );
   doc.moveDown(2);
 
   subdivisionData.streets.forEach((street: any, index: number) => {
@@ -295,8 +314,7 @@ export const generateAllSubdivisionsPDF = async () => {
   const subdivisionsData = subdivisions.map((s) => s.toJSON()) as any[];
   const doc = new PDFDocument({ margin: 50, size: "LETTER" });
 
-  drawHeader(doc);
-  doc.moveDown(7);
+  drawHeader(doc, undefined, true); // Logo solo en primera página
 
   drawInfoBox(
     doc,
@@ -310,7 +328,6 @@ export const generateAllSubdivisionsPDF = async () => {
   );
   doc.moveDown();
 
-  const totalFraccionamientos = subdivisionsData.length;
   const totalCasas = subdivisionsData.reduce(
     (sum: number, s: any) =>
       sum +
@@ -320,99 +337,86 @@ export const generateAllSubdivisionsPDF = async () => {
       ),
     0
   );
-  const casasHabitadas = subdivisionsData.reduce(
-    (sum: number, s: any) =>
-      sum +
-      s.streets.reduce(
-        (streetSum: number, st: any) =>
-          streetSum + st.houses.filter((h: any) => h.inhabited === "1").length,
-        0
-      ),
-    0
-  );
-  const casasConAgua = subdivisionsData.reduce(
-    (sum: number, s: any) =>
-      sum +
-      s.streets.reduce(
-        (streetSum: number, st: any) =>
-          streetSum + st.houses.filter((h: any) => h.water === "1").length,
-        0
-      ),
-    0
-  );
 
-  drawInfoBox(
-    doc,
-    doc.y,
-    "Total de fraccionamientos:",
-    totalFraccionamientos.toString()
-  );
-  doc.moveDown(0.5);
   drawInfoBox(doc, doc.y, "Total de casas:", totalCasas.toString());
-  doc.moveDown(0.5);
-  drawInfoBox(
-    doc,
-    doc.y,
-    "Casas habitadas:",
-    `${casasHabitadas} (${Math.round((casasHabitadas / totalCasas) * 100)}%)`
-  );
-  doc.moveDown(0.5);
-  drawInfoBox(
-    doc,
-    doc.y,
-    "Casas con agua:",
-    `${casasConAgua} (${Math.round((casasConAgua / totalCasas) * 100)}%)`
-  );
   doc.moveDown(2);
 
   subdivisionsData.forEach((subdivision: any, subdivIndex: number) => {
+    // Crear nueva página para cada fraccionamiento (excepto el primero)
     if (subdivIndex > 0) {
       doc.addPage();
-      drawHeader(doc, subdivision.subdivision_name);
-      doc.moveDown(7);
-    } else {
-      doc.moveDown(1);
-      doc
-        .fillColor(COLORS.primary)
-        .fontSize(14)
-        .font("Helvetica-Bold")
-        .text(`>> ${subdivision.subdivision_name}`, { align: "center" });
-      doc.moveDown(1);
+      drawHeader(doc, subdivision.subdivision_name, false); // Sin logo en páginas siguientes
     }
 
-    if (subdivIndex > 0) {
-      const casas = subdivision.streets.reduce(
-        (sum: number, st: any) => sum + st.houses.length,
-        0
-      );
-      const habitadas = subdivision.streets.reduce(
-        (sum: number, st: any) =>
-          sum + st.houses.filter((h: any) => h.inhabited === "1").length,
-        0
-      );
-      const conAgua = subdivision.streets.reduce(
-        (sum: number, st: any) =>
-          sum + st.houses.filter((h: any) => h.water === "1").length,
-        0
+    // Mostrar nombre del fraccionamiento con diseño destacado
+    const subdivisionY = doc.y;
+
+    // Rectángulo de fondo más grande y con degradado visual
+    doc
+      .fillColor(COLORS.primary)
+      .rect(40, subdivisionY - 8, doc.page.width - 80, 40)
+      .fill();
+
+    // Agregar una línea decorativa en la parte inferior
+    doc
+      .fillColor(COLORS.success)
+      .rect(40, subdivisionY + 28, doc.page.width - 80, 4)
+      .fill();
+
+    // Texto del fraccionamiento en blanco y más grande
+    doc
+      .fillColor("#ffffff")
+      .fontSize(16)
+      .font("Helvetica-Bold")
+      .text(
+        subdivIndex === 0
+          ? `${subdivision.subdivision_name}`
+          : `Fraccionamiento: ${subdivision.subdivision_name}`,
+        50,
+        subdivisionY,
+        { width: doc.page.width - 100 }
       );
 
-      drawInfoBox(doc, doc.y, "Total de casas:", casas.toString());
-      doc.moveDown(0.5);
-      drawInfoBox(
-        doc,
-        doc.y,
-        "Casas habitadas:",
-        `${habitadas} (${Math.round((habitadas / casas) * 100)}%)`
-      );
-      doc.moveDown(0.5);
-      drawInfoBox(
-        doc,
-        doc.y,
-        "Casas con agua:",
-        `${conAgua} (${Math.round((conAgua / casas) * 100)}%)`
-      );
-      doc.moveDown(2);
-    }
+    doc.moveDown(2);
+
+    // Mostrar estadísticas del fraccionamiento
+    const casas = subdivision.streets.reduce(
+      (sum: number, st: any) => sum + st.houses.length,
+      0
+    );
+    const habitadas = subdivision.streets.reduce(
+      (sum: number, st: any) =>
+        sum + st.houses.filter((h: any) => h.inhabited === "1").length,
+      0
+    );
+    const conAgua = subdivision.streets.reduce(
+      (sum: number, st: any) =>
+        sum + st.houses.filter((h: any) => h.water === "1").length,
+      0
+    );
+
+    drawInfoBox(doc, doc.y, "Total de casas:", casas.toString());
+    doc.moveDown(0.5);
+
+    const porcentajeHabitadas =
+      casas > 0 ? Math.round((habitadas / casas) * 100) : 0;
+    drawInfoBox(
+      doc,
+      doc.y,
+      "Casas habitadas:",
+      `${habitadas} (${porcentajeHabitadas}%)`
+    );
+    doc.moveDown(0.5);
+
+    const porcentajeConAgua =
+      casas > 0 ? Math.round((conAgua / casas) * 100) : 0;
+    drawInfoBox(
+      doc,
+      doc.y,
+      "Casas con agua:",
+      `${conAgua} (${porcentajeConAgua}%)`
+    );
+    doc.moveDown(2);
 
     subdivision.streets.forEach((street: any, index: number) => {
       if (index > 0) {
@@ -445,6 +449,201 @@ export const generateAllSubdivisionsPDF = async () => {
       .text(`Página ${pageCount}`, 50, doc.page.height - 50, {
         align: "center",
       });
+  });
+
+  return doc;
+};
+
+export const generatePadronSubdivisionsPDF = async () => {
+  const subdivisions = await Subdivision.findAll({
+    include: [
+      {
+        model: Street,
+        as: "streets",
+        include: [
+          {
+            model: House,
+            as: "houses",
+          },
+        ],
+      },
+    ],
+  });
+
+  if (subdivisions.length === 0) {
+    throw new Error("No subdivisions found");
+  }
+
+  const subdivisionsData = subdivisions.map((s) => s.toJSON()) as any[];
+  const doc = new PDFDocument({
+    margin: 40,
+    size: "LETTER",
+    layout: "landscape",
+  });
+
+  // Título
+  doc
+    .fillColor(COLORS.primary)
+    .fontSize(22)
+    .font("Helvetica-Bold")
+    .text(
+      "Junta de Agua Potable y Alcantarillado del Municipio de Ahome",
+      0,
+      25,
+      { align: "center", width: doc.page.width }
+    );
+
+  doc
+    .fontSize(16)
+    .font("Helvetica")
+    .fillColor(COLORS.text)
+    .text("Padrón de Fraccionamientos Nuevos", 0, 53, {
+      align: "center",
+      width: doc.page.width,
+    });
+
+  doc.moveDown(1);
+
+  const logoPath = path.join(process.cwd(), "assets", "logoJapama.png");
+  try {
+    doc.image(logoPath, 40, doc.y, { width: 200 });
+  } catch (error) {
+    console.log("Logo no encontrado, continuando sin logo");
+  }
+
+  doc.moveDown(4);
+
+  // Fecha
+  doc
+    .fontSize(9)
+    .fillColor(COLORS.textLight)
+    .font("Helvetica")
+    .text(
+      `Fecha: ${new Date().toLocaleDateString("es-MX", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })}`,
+      0,
+      doc.y,
+      { align: "right", width: doc.page.width - 40 }
+    );
+
+  doc.moveDown(1.5);
+
+  const cols = {
+    nombre: 50,
+    totalTomas: 260,
+    habitadasConAgua: 340,
+    habitadasSinAgua: 440,
+    deshabitadasConAgua: 540,
+    deshabitadasSinAgua: 650,
+  };
+
+  const headerY = doc.y;
+  doc
+    .fontSize(9)
+    .fillColor(COLORS.primary)
+    .font("Helvetica-Bold")
+    .text("Fraccionamiento", cols.nombre, headerY, { width: 200 })
+    .text("Total", cols.totalTomas, headerY, { width: 70, align: "center" })
+    .text("Hab. c/Agua", cols.habitadasConAgua, headerY, {
+      width: 90,
+      align: "center",
+    })
+    .text("Hab. s/Agua", cols.habitadasSinAgua, headerY, {
+      width: 90,
+      align: "center",
+    })
+    .text("Deshab. c/Agua", cols.deshabitadasConAgua, headerY, {
+      width: 100,
+      align: "center",
+    })
+    .text("Deshab. s/Agua", cols.deshabitadasSinAgua, headerY, {
+      width: 100,
+      align: "center",
+    });
+
+  doc.moveDown(0.8);
+
+  // Línea divisoria después de encabezados
+  doc
+    .strokeColor(COLORS.primary)
+    .lineWidth(1.5)
+    .moveTo(cols.nombre, doc.y)
+    .lineTo(doc.page.width - 50, doc.y)
+    .stroke();
+
+  doc.moveDown(0.5);
+
+  // Recorrer cada fraccionamiento (formato de tabla)
+  subdivisionsData.forEach((subdivision: any, index: number) => {
+    // Calcular estadísticas
+    const allHouses = subdivision.streets.reduce(
+      (houses: any[], street: any) => [...houses, ...street.houses],
+      []
+    );
+
+    const totalTomas = allHouses.length;
+    const habitadasConAgua = allHouses.filter(
+      (h: any) => h.inhabited === "1" && h.water === "1"
+    ).length;
+    const habitadasSinAgua = allHouses.filter(
+      (h: any) => h.inhabited === "1" && h.water === "0"
+    ).length;
+    const deshabitadasConAgua = allHouses.filter(
+      (h: any) => h.inhabited === "0" && h.water === "1"
+    ).length;
+    const deshabitadasSinAgua = allHouses.filter(
+      (h: any) => h.inhabited === "0" && h.water === "0"
+    ).length;
+
+    // Verificar si necesitamos nueva página
+    if (doc.y > doc.page.height - 60) {
+      doc.addPage();
+      doc.moveDown(1);
+    }
+
+    const rowY = doc.y;
+
+    // Fondo alternado para mejor legibilidad
+    if (index % 2 === 0) {
+      doc
+        .fillColor(COLORS.light)
+        .rect(cols.nombre - 5, rowY - 3, doc.page.width - 90, 18)
+        .fill();
+    }
+
+    // Datos de la fila
+    doc
+      .fontSize(9)
+      .fillColor(COLORS.text)
+      .font("Helvetica")
+      .text(subdivision.subdivision_name, cols.nombre, rowY, { width: 200 })
+      .font("Helvetica-Bold")
+      .text(totalTomas.toString(), cols.totalTomas, rowY, {
+        width: 70,
+        align: "center",
+      })
+      .font("Helvetica")
+      .text(habitadasConAgua.toString(), cols.habitadasConAgua, rowY, {
+        width: 90,
+        align: "center",
+      })
+      .text(habitadasSinAgua.toString(), cols.habitadasSinAgua, rowY, {
+        width: 90,
+        align: "center",
+      })
+      .text(deshabitadasConAgua.toString(), cols.deshabitadasConAgua, rowY, {
+        width: 100,
+        align: "center",
+      })
+      .text(deshabitadasSinAgua.toString(), cols.deshabitadasSinAgua, rowY, {
+        width: 100,
+        align: "center",
+      });
+
+    doc.moveDown(0.7);
   });
 
   return doc;
