@@ -20,9 +20,24 @@ router.post(
   authorizedRoles("admin", "inspector", "cobrador"),
   createStreet
 );
-router.get("/streets", authMiddleware, getAllStreets);
-router.get("/streets/:id", authMiddleware, getStreet);
-router.patch("/streets/:id", authMiddleware, updateStreet);
+router.get(
+  "/streets",
+  authMiddleware,
+  authorizedRoles("admin", "inspector", "cobrador"),
+  getAllStreets
+);
+router.get(
+  "/streets/:id",
+  authMiddleware,
+  authorizedRoles("admin", "inspector", "cobrador"),
+  getStreet
+);
+router.patch(
+  "/streets/:id",
+  authMiddleware,
+  authorizedRoles("admin", "inspector", "cobrador"),
+  updateStreet
+);
 router.delete(
   "/streets/:id",
   authMiddleware,
