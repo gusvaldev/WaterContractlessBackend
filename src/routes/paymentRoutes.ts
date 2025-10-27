@@ -16,7 +16,7 @@ const router: ExpressRouter = Router();
 router.post(
   "/payments",
   authMiddleware,
-  authorizedRoles("cobrador", "admin"),
+  authorizedRoles("admin", "cobrador"),
   processPayment
 );
 
