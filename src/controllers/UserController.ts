@@ -1,9 +1,14 @@
-import { postUser, getUserById, updateUserInfo } from "../services/UserService";
+import {
+  postUser,
+  getUserById,
+  updateUserInfo,
+  getCurrentUser,
+} from "../services/UserService";
 import { Request, Response } from "express";
 
 const createUser = async (req: Request, res: Response) => {
   try {
-    const { name, lastname, email, username, password } = req.body;
+    const { name, lastname, email, username, password, role } = req.body;
     if (!name || !lastname || !username || !password) {
       return res.status(400).json({
         error: "All fields are required (name, lastname, username, password)",
@@ -16,6 +21,7 @@ const createUser = async (req: Request, res: Response) => {
       email,
       username,
       password,
+      role,
     });
 
     const { password: _, ...userResponse } = newUser;
@@ -71,4 +77,31 @@ const updateUserById = async (req: Request, res: Response) => {
   }
 };
 
-export { createUser, getUserByIdField, updateUserById };
+const getMe = async (req: Request, res: Response) => {
+  try {
+    // userId comes from JWT token in auth middleware
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        error: "Unauthorized - No user ID found",
+      });
+    }
+
+    const user = await getCurrentUser(userId);
+
+    // Remove password from response
+    const { password: _, ...userResponse } = user;
+
+    res.json({
+      message: "Current user retrieved successfully",
+      user: userResponse,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: "Failed to get current user",
+    });
+  }
+};
+
+export { createUser, getUserByIdField, updateUserById, getMe };

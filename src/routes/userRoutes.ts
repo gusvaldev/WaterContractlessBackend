@@ -4,12 +4,29 @@ import {
   createUser,
   getUserByIdField,
   updateUserById,
+  getMe,
 } from "../controllers/UserController";
+import { authMiddleware } from "../middleware/auth";
+import { authorizedRoles } from "../middleware/roleAuth";
 
 const router: ExpressRouter = Router();
 
-router.post("/users", createUser);
-router.get("/users/:id", getUserByIdField);
-router.put("/users/:id", updateUserById);
+// Ver perfil propio (todos los roles autenticados)
+router.get("/users/me", authMiddleware, getMe);
+
+// Operaciones de usuarios (solo administradores)
+router.post("/users", authMiddleware, authorizedRoles("admin"), createUser);
+router.get(
+  "/users/:id",
+  authMiddleware,
+  authorizedRoles("admin"),
+  getUserByIdField
+);
+router.put(
+  "/users/:id",
+  authMiddleware,
+  authorizedRoles("admin"),
+  updateUserById
+);
 
 export { router };

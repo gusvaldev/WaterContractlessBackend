@@ -11,6 +11,7 @@ const postUser = async (
       email: userData.email,
       username: userData.username,
       password: userData.password,
+      role: userData.role,
     });
 
     return newUser.toJSON() as UserType;
@@ -54,4 +55,21 @@ const updateUserInfo = async (
   }
 };
 
-export { postUser, getUserById, updateUserInfo };
+const getCurrentUser = async (userId: number) => {
+  try {
+    const user = await User.findByPk(userId, {
+      attributes: ["role"],
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return user.toJSON() as UserType;
+  } catch (error) {
+    console.error("Failed to get current user", error);
+    throw new Error("Failed to get current user");
+  }
+};
+
+export { postUser, getUserById, updateUserInfo, getCurrentUser };
