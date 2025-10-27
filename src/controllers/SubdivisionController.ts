@@ -320,3 +320,37 @@ export const generateAllSubdivisionsExcel = async (
     });
   }
 };
+
+export const generatePadronSubdivisionsPDF = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const pdfDoc = await PDFService.generatePadronSubdivisionsPDF();
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=padron-fraccionamientos-${Date.now()}.pdf`
+    );
+
+    pdfDoc.pipe(res);
+    pdfDoc.end();
+  } catch (error: any) {
+    console.error("Error generating padron PDF:", error);
+
+    if (error.message === "No subdivisions found") {
+      res.status(404).json({
+        ok: false,
+        message: "No subdivisions found",
+      });
+      return;
+    }
+
+    res.status(500).json({
+      ok: false,
+      message: "Error generating PDF",
+      error: error.message,
+    });
+  }
+};

@@ -10,6 +10,7 @@ import {
   generateAllSubdivisionsPDF,
   generateSubdivisionExcel,
   generateAllSubdivisionsExcel,
+  generatePadronSubdivisionsPDF,
 } from "../controllers/SubdivisionController";
 import { getHousesBySubdivision } from "../controllers/HouseController";
 import { authMiddleware } from "../middleware/auth";
@@ -23,9 +24,24 @@ router.post(
   authorizedRoles("admin", "inspector", "cobrador"),
   createASubdivision
 );
-router.get("/subdivisions", authMiddleware, getSubdivisions);
-router.get("/subdivisions/:id", authMiddleware, getSubdivisionId);
-router.patch("/subdivisions/:id", authMiddleware, putSubdivisionId);
+router.get(
+  "/subdivisions",
+  authMiddleware,
+  authorizedRoles("admin", "inspector", "cobrador"),
+  getSubdivisions
+);
+router.get(
+  "/subdivisions/:id",
+  authMiddleware,
+  authorizedRoles("admin", "inspector", "cobrador"),
+  getSubdivisionId
+);
+router.patch(
+  "/subdivisions/:id",
+  authMiddleware,
+  authorizedRoles("admin", "inspector", "cobrador"),
+  putSubdivisionId
+);
 router.delete(
   "/subdivisions/:id",
   authMiddleware,
@@ -60,6 +76,13 @@ router.get(
   authMiddleware,
   authorizedRoles("admin", "inspector"),
   generateAllSubdivisionsExcel
+);
+
+router.get(
+  "/subdivisions-padron/pdf",
+  authMiddleware,
+  authorizedRoles("admin", "inspector", "cobrador"),
+  generatePadronSubdivisionsPDF
 );
 
 export default router;
