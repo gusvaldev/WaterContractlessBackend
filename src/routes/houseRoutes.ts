@@ -16,12 +16,27 @@ const router: ExpressRouter = Router();
 router.post(
   "/",
   authMiddleware,
-  authorizedRoles("admin", "cobrador", "inspector"),
+  authorizedRoles("admin", "inspector", "cobrador"),
   createAHouse
 );
-router.get("/", authMiddleware, getHouses);
-router.get("/:id", authMiddleware, getHouseId);
-router.patch("/:id", authMiddleware, putHouseId);
+router.get(
+  "/",
+  authMiddleware,
+  authorizedRoles("admin", "inspector", "cobrador"),
+  getHouses
+);
+router.get(
+  "/:id",
+  authMiddleware,
+  authorizedRoles("admin", "inspector", "cobrador"),
+  getHouseId
+);
+router.patch(
+  "/:id",
+  authMiddleware,
+  authorizedRoles("admin", "inspector", "cobrador"),
+  putHouseId
+);
 router.delete(
   "/:id",
   authMiddleware,
