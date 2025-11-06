@@ -5,9 +5,9 @@ import {
   getUserByIdField,
   updateUserById,
   getMe,
-} from "../controllers/UserController";
-import { authMiddleware } from "../middleware/auth";
-import { authorizedRoles } from "../middleware/roleAuth";
+} from "../controllers/UserController.js";
+import { authMiddleware } from "../middleware/auth.js";
+import { authorizedRoles } from "../middleware/roleAuth.js";
 
 const router: ExpressRouter = Router();
 

@@ -1,9 +1,9 @@
 import { DataTypes, Optional, Model } from "sequelize";
-import { sequelize } from "../config/database";
-import { PaymentType } from "../interfaces/Payment";
-import { User } from "./User";
-import { Street } from "./StreetModel";
-import { Subdivision } from "./SubdivisionModel";
+import { sequelize } from "../config/database.js";
+import { PaymentType } from "../interfaces/Payment.js";
+import { User } from "./User.js";
+import { Street } from "./StreetModel.js";
+import { Subdivision } from "./SubdivisionModel.js";
 
 interface PaymentCreationAttributes
   extends Optional<PaymentType, "payment_id"> {}

@@ -1,4 +1,4 @@
-import { House, Street, Subdivision } from "../models";
+import { House, Street, Subdivision } from "../models/index.js";
 
 interface CreateHouseData {
   house_number: string;

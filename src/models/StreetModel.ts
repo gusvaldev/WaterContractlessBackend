@@ -1,7 +1,7 @@
 import { DataTypes, Optional, Model } from "sequelize";
-import { sequelize } from "../config/database";
-import { StreetType } from "../interfaces/Street";
-import { Subdivision } from "./SubdivisionModel";
+import { sequelize } from "../config/database.js";
+import { StreetType } from "../interfaces/Street.js";
+import { Subdivision } from "./SubdivisionModel.js";
 
 interface StreetCreationAttributes extends Optional<StreetType, "street_id"> {}
 

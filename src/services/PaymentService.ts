@@ -1,8 +1,8 @@
-import { Payment } from "../models";
-import { House } from "../models";
-import { Street } from "../models";
-import { Subdivision } from "../models";
-import { User } from "../models";
+import { Payment } from "../models/index.js";
+import { House } from "../models/index.js";
+import { Street } from "../models/index.js";
+import { Subdivision } from "../models/index.js";
+import { User } from "../models/index.js";
 
 export const createPaymentAndDeleteHouse = async (
   houseId: number,

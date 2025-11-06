@@ -1,15 +1,15 @@
 import { Router } from "express";
 import type { Router as ExpressRouter } from "express";
-import { getReportsByHouse } from "../controllers/ReportController";
-import { authMiddleware } from "../middleware/auth";
+import { getReportsByHouse } from "../controllers/ReportController.js";
+import { authMiddleware } from "../middleware/auth.js";
 import {
   createAHouse,
   getHouses,
   getHouseId,
   putHouseId,
   deleteHouseById,
-} from "../controllers/HouseController";
-import { authorizedRoles } from "../middleware/roleAuth";
+} from "../controllers/HouseController.js";
+import { authorizedRoles } from "../middleware/roleAuth.js";
 
 const router: ExpressRouter = Router();
 

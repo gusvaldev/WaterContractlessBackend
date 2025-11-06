@@ -1,14 +1,14 @@
 import express from "express";
 import type { Application, Request, Response } from "express";
-import { connectDB, syncDB } from "./config/database";
+import { connectDB, syncDB } from "./config/database.js";
 import "./models/index.js";
-import { router } from "./routes/userRoutes";
+import { router } from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
-import subdivisionRoutes from "./routes/subdivisionRoutes";
-import streetRoutes from "./routes/streetRoutes";
-import houseRoutes from "./routes/houseRoutes";
-import reportRoutes from "./routes/reportRoutes";
-import paymentRoutes from "./routes/paymentRoutes";
+import subdivisionRoutes from "./routes/subdivisionRoutes.js";
+import streetRoutes from "./routes/streetRoutes.js";
+import houseRoutes from "./routes/houseRoutes.js";
+import reportRoutes from "./routes/reportRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
 import cors from "cors";
 
 const app: Application = express();

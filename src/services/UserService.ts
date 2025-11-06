@@ -1,5 +1,5 @@
-import { User } from "../models/User";
-import { UserType, UpdateUser } from "../interfaces/User";
+import { User } from "../models/User.js";
+import { UserType, UpdateUser } from "../interfaces/User.js";
 
 const postUser = async (
   userData: Omit<UserType, "id" | "createdAt" | "updatedAt">

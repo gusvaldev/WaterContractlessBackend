@@ -1,4 +1,4 @@
-import { Subdivision } from "../models";
+import { Subdivision } from "../models/index.js";
 
 export const createSubdivision = async (
   data: Subdivision["subdivision_name"]

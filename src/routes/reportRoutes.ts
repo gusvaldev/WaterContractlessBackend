@@ -1,14 +1,14 @@
 import { Router } from "express";
 import type { Router as ExpressRouter } from "express";
-import { authMiddleware } from "../middleware/auth";
+import { authMiddleware } from "../middleware/auth.js";
 import {
   createAReport,
   getReports,
   getReportId,
   putReportId,
   deleteReportById,
-} from "../controllers/ReportController";
-import { authorizedRoles } from "../middleware/roleAuth";
+} from "../controllers/ReportController.js";
+import { authorizedRoles } from "../middleware/roleAuth.js";
 const router: ExpressRouter = Router();
 
 // POST /api/reports - Crear un nuevo reporte

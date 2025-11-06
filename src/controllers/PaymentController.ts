@@ -5,7 +5,7 @@ import {
   getPaymentById,
   getPaymentsBySubdivision,
   getPaymentsByCobrador,
-} from "../services/PaymentService";
+} from "../services/PaymentService.js";
 
 export const processPayment = async (
   req: Request,

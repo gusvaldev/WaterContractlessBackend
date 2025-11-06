@@ -6,9 +6,9 @@ import {
   getPaymentId,
   getPaymentsBySubdivisionId,
   getPaymentsByCobradorId,
-} from "../controllers/PaymentController";
-import { authMiddleware } from "../middleware/auth";
-import { authorizedRoles } from "../middleware/roleAuth";
+} from "../controllers/PaymentController.js";
+import { authMiddleware } from "../middleware/auth.js";
+import { authorizedRoles } from "../middleware/roleAuth.js";
 
 const router: ExpressRouter = Router();
 

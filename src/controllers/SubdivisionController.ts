@@ -5,9 +5,9 @@ import {
   getSubdivisionById,
   updateSubdivision,
   deleteSubdivision,
-} from "../services/SubdivisionService";
-import * as PDFService from "../services/PDFService";
-import * as ExcelService from "../services/ExcelService";
+} from "../services/SubdivisionService.js";
+import * as PDFService from "../services/PDFService.js";
+import * as ExcelService from "../services/ExcelService.js";
 
 export const createASubdivision = async (
   req: Request,

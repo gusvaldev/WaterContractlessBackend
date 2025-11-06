@@ -1,6 +1,6 @@
 import { DataTypes, Optional, Model } from "sequelize";
-import { sequelize } from "../config/database";
-import { SubdivisionType } from "../interfaces/Subdivisions";
+import { sequelize } from "../config/database.js";
+import { SubdivisionType } from "../interfaces/Subdivisions.js";
 
 interface SubdivisionCreationAttributes
   extends Optional<SubdivisionType, "subdivision_id"> {}

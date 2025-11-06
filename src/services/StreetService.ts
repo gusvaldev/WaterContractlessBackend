@@ -1,4 +1,4 @@
-import { Street, Subdivision } from "../models";
+import { Street, Subdivision } from "../models/index.js";
 
 interface CreateStreetData {
   street_name: string;

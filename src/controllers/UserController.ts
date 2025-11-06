@@ -3,7 +3,7 @@ import {
   getUserById,
   updateUserInfo,
   getCurrentUser,
-} from "../services/UserService";
+} from "../services/UserService.js";
 import { Request, Response } from "express";
 
 const createUser = async (req: Request, res: Response) => {

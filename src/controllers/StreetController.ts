@@ -6,7 +6,7 @@ import {
   getStreetById,
   updateStreet as updateStreetService,
   deleteStreet as deleteStreetService,
-} from "../services/StreetService";
+} from "../services/StreetService.js";
 
 /**
  * POST /api/streets

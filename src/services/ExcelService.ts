@@ -1,5 +1,5 @@
 import ExcelJS from "exceljs";
-import { Subdivision, Street, House, Report } from "../models";
+import { Subdivision, Street, House, Report } from "../models/index.js";
 
 const COLORS = {
   headerBg: "FF1e40af",

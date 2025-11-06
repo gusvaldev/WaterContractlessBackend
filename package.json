@@ -5,9 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node src/app.ts",
+    "start": "node dist/app.js",
     "build": "tsc",
-    "serve": "node dist/app.js",
     "dev": "nodemon --exec tsx src/app.ts"
   },
   "keywords": [],

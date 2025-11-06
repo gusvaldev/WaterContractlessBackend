@@ -1,7 +1,7 @@
 import { DataTypes, Optional, Model } from "sequelize";
-import { sequelize } from "../config/database";
-import { HouseType } from "../interfaces/House";
-import { Street } from "./StreetModel";
+import { sequelize } from "../config/database.js";
+import { HouseType } from "../interfaces/House.js";
+import { Street } from "./StreetModel.js";
 
 interface HouseCreationAttributes extends Optional<HouseType, "house_id"> {}
 

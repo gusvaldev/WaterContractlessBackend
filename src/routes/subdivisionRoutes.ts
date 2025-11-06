@@ -11,10 +11,10 @@ import {
   generateSubdivisionExcel,
   generateAllSubdivisionsExcel,
   generatePadronSubdivisionsPDF,
-} from "../controllers/SubdivisionController";
-import { getHousesBySubdivision } from "../controllers/HouseController";
-import { authMiddleware } from "../middleware/auth";
-import { authorizedRoles } from "../middleware/roleAuth";
+} from "../controllers/SubdivisionController.js";
+import { getHousesBySubdivision } from "../controllers/HouseController.js";
+import { authMiddleware } from "../middleware/auth.js";
+import { authorizedRoles } from "../middleware/roleAuth.js";
 
 const router: ExpressRouter = Router();
 

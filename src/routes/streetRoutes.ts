@@ -7,10 +7,10 @@ import {
   getStreet,
   updateStreet,
   deleteStreet,
-} from "../controllers/StreetController";
-import { getHousesByStreet } from "../controllers/HouseController";
-import { authMiddleware } from "../middleware/auth";
-import { authorizedRoles } from "../middleware/roleAuth";
+} from "../controllers/StreetController.js";
+import { getHousesByStreet } from "../controllers/HouseController.js";
+import { authMiddleware } from "../middleware/auth.js";
+import { authorizedRoles } from "../middleware/roleAuth.js";
 
 const router: ExpressRouter = Router();
 

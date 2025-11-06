@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as HouseService from "../services/HouseService";
+import * as HouseService from "../services/HouseService.js";
 
 /**
  * POST /api/houses

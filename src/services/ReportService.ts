@@ -1,5 +1,5 @@
-import { Report, House, Street, Subdivision } from "../models";
-import type { Reports } from "../interfaces/Reports";
+import { Report, House, Street, Subdivision } from "../models/index.js";
+import type { Reports } from "../interfaces/Reports.js";
 
 type createReportType = Pick<Reports, "report_date" | "comments" | "house_id">;
 

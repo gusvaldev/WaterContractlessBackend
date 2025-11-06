@@ -1,6 +1,6 @@
 import PDFDocument from "pdfkit";
 import path from "path";
-import { Subdivision, Street, House, Report } from "../models";
+import { Subdivision, Street, House, Report } from "../models/index.js";
 
 const COLORS = {
   primary: "#1e40af",
