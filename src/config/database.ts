@@ -10,7 +10,7 @@ const sequelize = new Sequelize({
   password: process.env.DB_PASSWORD || "",
   database: process.env.DB_NAME || "watercontract",
   dialect: "mysql",
-  logging: console.log, // Cambiar a false en producción
+  logging: process.env.NODE_ENV === "production" ? false : console.log,
   pool: {
     max: 10,
     min: 0,
